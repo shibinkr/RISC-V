@@ -172,3 +172,179 @@ In RISC-V, hardware registers are named **x0 to x31**, but they are also given *
 - **t0–t6**: Temporary registers, not preserved across function calls.  
 - **s0–s11**: Saved registers, must be preserved by the callee.  
 - **a0–a7**: Argument registers for function calls; `a0` and `a1` also hold return values.
+
+---
+
+### 2.5.2 Overview of Control and Status Registers (CSRs) in RISC-V
+
+Control and Status Registers (CSRs) are a dedicated set of up to **4096 special-purpose registers** in RISC-V, used to control and monitor processor behavior. They exist in a separate **12-bit address space** and store crucial CPU data such as timers, interrupt status, flags, and hardware details.
+
+#### Purpose of CSRs:
+CSRs allow software to:
+- Manage processor settings  
+- Handle exceptions and interrupts  
+- Access system-level information  
+
+The **Zicsr extension** defines instructions for interacting with CSRs:
+- `CSRRW`: Read and write  
+- `CSRRS`: Read and set bits  
+- `CSRRC`: Read and clear bits  
+
+These instructions allow **efficient and safe CSR access** and modification.
+
+#### Common Key CSRs:
+
+- **`mstatus`**: Controls interrupt enable flags and privilege modes  
+- **`mepc`**: Holds the program counter at the time of an exception or interrupt  
+- **`mtvec`**: Sets the base address for machine-mode trap handlers  
+- **`mcause`**: Identifies the cause of the most recent exception or interrupt  
+- **`misa`**: Describes supported ISA features and base ISA width (RV32, RV64, or RV128)
+
+These CSRs are essential for:
+- Privilege mode transitions  
+- Trap and interrupt handling  
+- Discovering hardware capabilities  
+
+---
+
+#### Key CSRs in Detail:
+
+1. **`mstatus` – Machine Status Register**
+   - Controls and reflects the current status of the processor.  
+   - Contains flags and fields for:
+     - Global interrupt enable/disable (e.g., `MIE`, `SIE`)  
+     - Current and previous privilege modes (`MPP`, `SPP`)  
+     - Per-level interrupt enable status  
+   - Essential for managing privilege transitions, interrupts, and context switches.
+
+2. **`mepc` – Machine Exception Program Counter**
+   - Stores the address of the instruction that caused an exception or interrupt.  
+   - Used with `MRET` to resume execution after a trap.  
+   - Ensures proper control flow resumption post-interrupt.
+
+3. **`mtvec` – Machine Trap-Vector Base Address**
+   - Points to the base address of the machine-mode trap handler.  
+   - Supports two modes:  
+     - **Direct**: All traps go to one entry point  
+     - **Vectored**: Offset used based on the exception cause  
+   - Enables flexible trap/interrupt vectoring.
+
+4. **`mcause` – Machine Cause Register**
+   - Identifies the reason for the most recent trap.  
+   - Contains:
+     - Interrupt vs. exception flag  
+     - Cause code (e.g., illegal instruction, timer interrupt)  
+   - Vital for building trap diagnostics and exception handlers.
+
+5. **`misa` – Machine ISA Register**
+   - Describes the processor’s supported features.  
+   - Encodes:
+     - Base ISA width (`RV32`, `RV64`, `RV128`)  
+     - Extensions via a bitmask (e.g., `I`, `M`, `F`, `D`, `C`)  
+   - Helps software determine feature availability at runtime.
+
+---
+
+### 2.5.3 ISA Extensions in RISC-V
+
+In RISC-V, the base ISA (e.g., RV32I) defines the **minimal instruction set** required for a functional CPU. However, most real-world applications need additional capabilities such as floating-point arithmetic, atomic instructions, or cryptographic operations.
+
+#### What Are ISA Extensions?
+
+ISA extensions are **optional**, modular additions to the base instruction set. They provide **specialized capabilities** and are described in the **Unprivileged Specification** if they don’t require M-mode access.
+
+#### Who Develops Extensions?
+
+Extensions are developed by task groups under **RISC-V International**, consisting of domain experts and contributors. These extensions are ratified before becoming standard.
+
+##### Notable Task Groups and Extensions:
+
+- **Crypto Task Group**
+  - Adds hardware-accelerated cryptographic operations  
+  - Useful for secure applications like IoT and secure boot
+
+- **B Extension Task Group**
+  - Focuses on **bit manipulation** instructions  
+  - Includes counting, rotation, setting/clearing bits
+
+- **Vector (V) Extension Task Group**
+  - Provides **vector/SIMD-style processing**  
+  - Enhances performance in AI/ML, signal processing, and HPC
+
+#### Ratification Process:
+
+Once ratified, an extension becomes part of the **official RISC-V ISA**, allowing consistent hardware and software support across implementations.
+
+---
+
+### 2.5.4 The M Extension for Multiplication and Division
+
+The **M Extension** adds **hardware support for integer multiplication and division**, which are not included in the base ISA.
+
+#### Features of the M Extension:
+
+- **RV32M** (for 32-bit systems): Adds 8 instructions  
+  - Multiplication: `MUL`, `MULH`, `MULHSU`, `MULHU`  
+  - Division: `DIV`, `DIVU`, `REM`, `REMU`
+
+- **RV64M** (for 64-bit systems): Adds 5 additional instructions to support 64-bit arithmetic
+
+#### How It Works:
+
+- Operands come from general-purpose registers  
+- Results are written back to destination registers  
+- Specifies signed/unsigned behavior, handling of overflow, and divide-by-zero
+
+#### Why It’s Optional:
+
+- Hardware multiplication/division **adds complexity and power consumption**  
+- For embedded systems:
+  - Operations can be implemented in software  
+  - Helps reduce silicon area and cost  
+  - Improves energy efficiency
+
+RISC-V leaves this extension optional to enable **flexibility and optimization** for application-specific CPUs.
+
+---
+
+### 2.5.5 The F and D Extensions for Floating-Point Arithmetic
+
+RISC-V includes optional extensions for **floating-point math**:
+- **F**: Single-precision (32-bit)
+- **D**: Double-precision (64-bit)
+
+These follow the **IEEE 754 standard**.
+
+#### F Extension – Single Precision
+
+- Adds **32 registers**: `f0` to `f31`, each 32 bits  
+- Instructions include:
+  - Arithmetic: `FADD.S`, `FSUB.S`, `FMUL.S`, `FDIV.S`  
+  - Conversion: Between int and float  
+  - Comparisons and rounding  
+  - Handling `NaN`, `+∞`, `-∞`  
+- Useful for:
+  - Graphics  
+  - Gaming  
+  - Basic signal processing  
+
+#### D Extension – Double Precision
+
+- Builds on the F extension  
+- Same 32 registers now interpreted as **64-bit wide**  
+- Instructions include:
+  - `FADD.D`, `FDIV.D`, etc.  
+  - Conversions among int, float, and double  
+  - Full IEEE handling of special values  
+- Crucial for:
+  - Scientific computing  
+  - Financial modeling  
+  - High-precision engineering simulations
+
+#### Why Are These Extensions Optional?
+
+- Floating-point units (FPUs) **consume area and power**  
+- Embedded systems may:
+  - Omit FPUs to save resources  
+  - Use **software emulation** instead  
+- RISC-V makes these optional to allow **tailored CPU design** based on use case
