@@ -68,6 +68,7 @@
     - General-purpose extensions (M, A, F, D),  
     - Compressed (C) instructions.
 
+![Diagram](./images/RV32IMAC.png)
 ---
 
 ## 2.3 RISC-V ISA: Two-Part Structure
