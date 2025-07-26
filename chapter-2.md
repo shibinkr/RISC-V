@@ -348,3 +348,103 @@ These follow the **IEEE 754 standard**.
   - Omit FPUs to save resources  
   - Use **software emulation** instead  
 - RISC-V makes these optional to allow **tailored CPU design** based on use case
+
+---
+
+### 2.5.6 RISC-V's C Extension for Compressed Instructions
+
+The **C Extension** adds 16-bit compressed versions of certain instructions to the RISC-V instruction set, known as **RVC (RISC-V Compressed Instructions)**. These compressed instructions are selected based on their frequency of use in real-world applications, allowing for reduced code size and improved efficiency.
+
+#### Why is the C Extension Important?
+
+- **Code Size Reduction**: The use of 16-bit versions of frequently used instructions helps reduce the overall size of a program, saving memory and improving cache utilization.
+- **Static & Dynamic Efficiency**: The compression benefits both the compiled code (static) and runtime code (dynamic), leading to faster execution and better memory management.
+
+#### How Does it Work?
+
+- RISC-V designers studied modern compilers to identify the most frequently used instructions and created **34 16-bit versions** to replace their 32-bit counterparts.
+- **Key Trade-off**: While the 16-bit instructions are more compact, they do not include all features of their 32-bit counterparts. However, basic functionality is preserved, and the original 32-bit instructions are still available for use when needed.
+
+#### How Much Space Does it Save?
+
+- **50%–60%** of instructions in a typical RISC-V program can be replaced by the 16-bit compressed instructions.
+- This compression leads to a **25%–30% reduction in code size**, making programs more efficient.
+
+#### Compatibility
+
+- The **RVC 16-bit instructions** can be mixed freely with the **32-bit instructions**. This means no alignment issues occur, and the processor can handle them without throwing exceptions about "instruction-address-misaligned."
+- The **C extension** is fully compatible with other standard RISC-V extensions, so it can be easily integrated into existing systems.
+
+#### Why 16-bit?
+
+The 16-bit compressed instructions are possible due to several key factors:
+- **Registers**: Certain registers are used more frequently, allowing the instructions to assume specific registers without specifying all 32 possible registers.
+- **Operands**: In many RISC-V programs, one operand is often overwritten, reducing the need for multiple operands.
+- **Immediate Values**: The compressed instructions make use of smaller immediate values, allowing them to fit within a 16-bit encoding.
+
+#### The Compression Process
+
+- By limiting the registers, reducing the number of operands (2 instead of 3), and using smaller immediate values, the instructions can be compressed into just 16 bits.
+- This compression results in smaller programs without sacrificing significant functionality.
+
+![Diagram](./images/RV32IMAC.png)
+
+In the referenced image, the difference between **RV32I** (32-bit RISC-V instructions) and **RV32C** (16-bit compressed instructions) is clearly shown. RV32I instructions are 32 bits wide, while RV32C instructions are only 16 bits wide, making them more efficient in terms of memory usage and faster access to frequently used operations.
+
+---
+
+### C Extension vs. Pseudoinstructions
+
+**No**, instructions from the C extension are **not** pseudoinstructions.
+
+- **Pseudoinstructions**: These are software additions to assembly language that simplify programming. They have a direct machine code translation and are supported by assemblers and compilers.
+- **C Extension**: This adds hardware-supported versions of existing base ISA instructions to reduce code size, involving both **software** and **hardware** changes.
+
+In summary, pseudoinstructions are **software-only**, while the **C extension** involves both **software and hardware** support for instruction compression.
+
+---
+
+### 2.5.7 Overview of Additional RISC-V Extensions
+
+RISC-V’s **open and modular design** allows for the creation of a variety of extensions that provide specialized capabilities, making it suitable for a wide range of applications.
+
+#### Key RISC-V Extensions
+
+1. **A Extension (Atomic Memory Operations)**:
+   - Provides atomic memory operations for multi-core systems to avoid conflicts when multiple processors access shared memory.
+
+2. **Q Extension (Quad-Precision Floating-Point)**:
+   - Introduces **128-bit floating-point registers** to support high-precision operations, essential for scientific calculations.
+
+3. **B Extension (Bit Manipulation)**:
+   - Adds instructions for efficient bit-level operations, such as bitwise operations, which are useful for cryptography and data compression.
+
+4. **S Extension (Supervisor Operations)**:
+   - Introduces supervisor-level operations that control system resources, key for managing OS transitions and privileged modes.
+
+5. **H Extension (Hypervisor Operations)**:
+   - Supports **hypervisor operations** to create virtual machines and efficiently manage hardware resources in virtualized environments.
+
+6. **L Extension (Decimal Floating-Point Operations)**:
+   - Adds support for **decimal floating-point** operations, critical for applications like financial systems that require precise decimal rounding.
+
+7. **P Extension (Packed-SIMD Instructions)**:
+   - Introduces **Packed-SIMD** instructions for parallel data processing, boosting performance in image processing, machine learning, and multimedia tasks.
+
+8. **V Extension (Vector Operations)**:
+   - Adds vector processing capabilities for high-performance computing tasks like scientific calculations and machine learning.
+
+9. **Zicsr Extension (Control and Status Register Manipulation)**:
+   - Provides operations for manipulating **Control and Status Registers (CSRs)**, which are crucial for low-level hardware management.
+
+10. **Zifencei Extension (Instruction Memory Synchronization)**:
+    - Ensures proper synchronization of instruction memory, which is crucial for systems that use instruction prefetching or out-of-order execution.
+
+---
+
+### 2.5.8 Unsupported Instructions in RISC-V
+
+If a RISC-V processor encounters an instruction it doesn't support (e.g., an RV32IAC processor without the M extension trying to execute a multiplication), it triggers an **illegal instruction exception**.
+
+- **Compilers** are aware of the CPU's extensions and generate code accordingly.
+- If an unsupported instruction is encountered, the software **handles the exception**, often by emulating the instruction or using an alternative from the standard library.
