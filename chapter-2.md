@@ -448,3 +448,94 @@ If a RISC-V processor encounters an instruction it doesn't support (e.g., an RV3
 
 - **Compilers** are aware of the CPU's extensions and generate code accordingly.
 - If an unsupported instruction is encountered, the software **handles the exception**, often by emulating the instruction or using an alternative from the standard library.
+
+---
+
+## 2.6 RV32I Instruction Encoding Overview
+
+The **RV32I Instruction Set Architecture (ISA)** defines a 32-bit system with the following key elements:
+
+- A **32-bit Program Counter (PC)** and **32 general-purpose 32-bit registers** (`x0` to `x31`).
+- **40 unprivileged 32-bit instructions**, organized into six formats (**R, I, S, B, U, J**), all sharing common fields:
+  - A **7-bit major opcode**.
+  - **Source registers**:
+    - `rs1` in bits **15–19**
+    - `rs2` in bits **20–24**
+  - **Destination register** (`rd`) in bits **7–11**
+  - **Function fields**:
+    - `funct3` in bits **12–14**
+    - `funct7` in bits **25–31** (for R-type)
+  - **Immediate fields**, placed differently based on instruction type.
+- **24 privileged 32-bit instructions**, defined using only **R** and **I** formats.
+- A key principle of RISC-V emphasized in this ISA is the **fixed instruction length**:
+  > All instructions are encoded in **32 bits**, with **no exceptions**.
+
+![Diagram](./images/ISA_format.png)
+
+---
+
+### 2.6.1 Instruction Encodings with Explanations
+
+| Type | Use                      | Example               | Used For                             |
+|------|---------------------------|------------------------|---------------------------------------|
+| R    | Register operations       | `add x1, x2, x3`       | Arithmetic, logic, shifts             |
+| I    | Immediate & load          | `addi x1, x2, 10`      | Constants, memory loads               |
+| S    | Store to memory           | `sw x1, 0(x2)`         | Memory writes                         |
+| B    | Conditional branch        | `beq x1, x2, label`    | Loops, conditionals                   |
+| U    | Upper immediate (20 bits) | `lui x1, 0x12345`      | Large constants, addresses            |
+| J    | Unconditional jump        | `jal x1, label`        | Function calls, jumps                 |
+
+---
+
+#### 1. R-Type (Register Type)
+
+- **Purpose:** Performs arithmetic and logical operations between two registers.
+- **Fields include:** Two source registers (`rs1`, `rs2`), one destination register (`rd`), function codes (`funct3`, `funct7`), and opcode.
+- **Example:** `add x1, x2, x3` — adds contents of `x2` and `x3`, stores result in `x1`.
+- **Used for:** Arithmetic (`add`, `sub`), bitwise (`and`, `or`), and shift operations on registers.
+
+---
+
+#### 2. I-Type (Immediate Type)
+
+- **Purpose:** Operates with a register and a constant immediate value; also used for loads and system calls.
+- **Fields include:** One source register (`rs1`), destination register (`rd`), 12-bit immediate, `funct3`, and opcode.
+- **Example:** `addi x1, x2, 10` — adds immediate `10` to `x2`, stores in `x1`.
+- **Used for:** Arithmetic with constants, loading data from memory (`lw`), and system instructions (`ecall`).
+
+---
+
+#### 3. S-Type (Store Type)
+
+- **Purpose:** Stores data from a register into memory at an address computed from a base register plus an immediate offset.
+- **Fields include:** Two parts of a 12-bit immediate split around source registers (`rs1`, `rs2`), `funct3`, and opcode.
+- **Example:** `sw x1, 0(x2)` — stores value from `x1` into memory at address in `x2`.
+- **Used for:** Writing register data to memory.
+
+---
+
+#### 4. B-Type (Branch Type)
+
+- **Purpose:** Controls program flow by conditionally branching to a target address if a condition on registers is met.
+- **Fields include:** Two source registers (`rs1`, `rs2`), a 12-bit immediate (used for branch target calculation), `funct3`, and opcode.
+- **Example:** `beq x1, x2, label` — branches to `label` if `x1` equals `x2`.
+- **Used for:** Implementing loops, conditional statements, and decision making.
+
+---
+
+#### 5. U-Type (Upper Immediate Type)
+
+- **Purpose:** Loads a large 20-bit immediate into the upper 20 bits of a register, zeroing the lower bits.
+- **Fields include:** 20-bit immediate and destination register (`rd`), plus opcode.
+- **Example:** `lui x1, 0x12345` — loads `0x12345000` into `x1`.
+- **Used for:** Handling large constants and addresses, essential for position-independent code.
+
+---
+
+#### 6. J-Type (Jump Type)
+
+- **Purpose:** Performs unconditional jumps to a target address, saving the return address for function calls.
+- **Fields include:** A 20-bit immediate for jump target, destination register (`rd`), and opcode.
+- **Example:** `jal x1, label` — jumps to `label` and saves return address in `x1`.
+- **Used for:** Function calls and control transfer.
+
