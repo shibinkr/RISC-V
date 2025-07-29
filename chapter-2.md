@@ -623,3 +623,36 @@ A 20-bit immediate: `0x12345` becomes
 - The immediate must be the same width as registers before performing operations.
 - Proper extension ensures correct signed or unsigned arithmetic.
 
+---
+### 2.6.3 Instruction Mnemonics and Their Encoding
+
+In RISC-V assembly language, **instruction mnemonics** are used as human-readable shorthand for machine instructions. Each mnemonic represents a specific operation that the processor can perform.
+
+For example, the mnemonic `add` corresponds to an **addition operation**.
+
+A typical instruction like:  `add x1, x2, x3`
+means: "Add the contents of register x2 and register x3, then store the result in register x1."
+
+#### 2.6.3.1 Role of the Assembler
+
+The assembler translates these mnemonics into machine code, which is the binary language the processor understands. For the `add` instruction, the assembler produces a 32-bit machine code word.  
+
+In hexadecimal, this might be: ``0x003100B3``  
+which corresponds to the binary number:  ``0000000 00011 00010 000 00001 0110011``  
+
+##### R-Type Instruction Format
+
+| Bit Positions   | 31‒25   | 24‒20  | 19‒15  | 14‒12 | 11‒7   | 6‒0     |
+|-----------------|---------|--------|--------|--------|--------|---------|
+| **Field Names** | funct7  | rs2    | rs1    | funct3 | rd     | opcode  |
+| **Field Values**| 0000000 | 00011  | 00010  | 000    | 00001  | 0110011 |
+| **Register Names** |         | x3     | x2     |        | x1     | `add`   |
+
+##### Breakdown of the `add x1, x2, x3` Encoding
+
+- **funct7 (0000000)**: Specifies the operation variant — here, `add`.
+- **rs2 (00011)**: Register `x3` (source operand 2).
+- **rs1 (00010)**: Register `x2` (source operand 1).
+- **funct3 (000)**: Further operation code specifying addition.
+- **rd (00001)**: Destination register `x1`.
+- **opcode (0110011)**: Indicates an R-type instruction.
