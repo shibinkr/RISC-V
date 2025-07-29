@@ -656,3 +656,153 @@ which corresponds to the binary number:  ``0000000 00011 00010 000 00001 0110011
 - **funct3 (000)**: Further operation code specifying addition.
 - **rd (00001)**: Destination register `x1`.
 - **opcode (0110011)**: Indicates an R-type instruction.
+
+---
+
+### 2.6.4 A Few Peculiar RISC-V Design Decisions
+
+RISC-V, an open standard instruction set architecture (ISA), has several design decisions that can appear peculiar or even counterintuitive at first glance. However, many of these decisions were made with specific goals in mind: **simplicity, modularity, extensibility, and long-term maintainability**. Here's an explanation of a few of the more curious or peculiar design decisions in RISC-V and the reasoning behind them:
+
+---
+
+#### 1. The Zero Register (`x0` is always 0)
+
+**Peculiarity**: Register `x0` always contains the constant value zero. Any writes to it are ignored.
+
+**Why it exists**:
+- Simplicity in hardware and code generation.
+- Helps eliminate the need for explicit loading of zero.
+- Common patterns like conditional branches and arithmetic operations can be simplified, since `x0` can serve as a constant zero operand.
+
+**Example**:  
+`addi x5, x0, 10   # Load immediate value 10 into x5`
+No need for a separate instruction to load zero.
+
+---
+
+#### 2. No Flag Register (No condition codes like in x86)
+
+**Peculiarity**: RISC-V does not have a dedicated status or flag register (e.g., no carry, zero, sign flags).
+
+**Why it exists**:
+- Simplifies pipeline design.
+- Encourages use of explicit comparisons, which are more flexible.
+- Reduces hidden state that can complicate out-of-order execution and parallelism.
+
+**Result**: Instead of checking a flag, you use explicit instructions.
+`slt x1, x2, x3  # Set x1 = 1 if x2 < x3, else 0`
+---
+
+#### 3. Fixed-Length 32-bit Instructions in the Base ISA (RV32I)
+
+**Peculiarity**: Even simple instructions take 32 bits, when smaller encodings could be more space-efficient.
+
+**Why it exists**:
+- Simplicity in instruction decoding.
+- Uniform instruction length helps with fast and predictable fetch/decode stages in the pipeline.
+- There is a solution: the **"C" extension** adds 16-bit compressed instructions (optional).
+
+**Example**:  
+No single instruction for 32-bit immediates → use multiple instructions to construct large constants.
+- `lui x1, 0x12345`       # Load upper 20 bits (x1 = 0x12345000)
+- `addi x1, x1, 0x678`    # Add lower 12 bits (x1 = 0x12345678)
+
+---
+
+#### 4. Load/Store Architecture
+
+**Peculiarity**: Only load and store instructions can access memory; arithmetic instructions operate only on registers.
+
+**Why it exists**:
+- Classic RISC design principle.
+- Simplifies hardware by decoupling memory access and computation.
+- Encourages compiler optimizations and instruction-level parallelism.
+
+---
+
+#### 5. No Hardware Division/Multiplication in the Base ISA
+
+**Peculiarity**: The base integer ISA (RV32I) does not include division or multiplication instructions.
+
+**Why it exists**:
+- Keeps the base ISA minimal and simple.
+- Multiplication and division are part of the **"M" extension**, included only when needed.
+- Allows implementations to skip costly operations on tiny or embedded cores.
+
+---
+
+#### 6. Little-endian Only
+
+**Peculiarity**: RISC-V is defined as little-endian only (though bi-endian support is discussed).
+
+**Why it exists**:
+- Simplifies software and hardware consistency.
+- Little-endian is widely adopted (e.g., x86, ARMv8 in most configs).
+- Avoids complexity of supporting both endian modes.
+
+---
+
+#### 7. No Implicit Function Calling Conventions in ISA
+
+**Peculiarity**: RISC-V does not bake function call conventions (like stack frame management) into hardware.
+
+**Why it exists**:
+- Leaves calling conventions up to the software/ABI.
+- Promotes clean separation of ISA and ABI, allowing different OSes or tools to define custom conventions.
+- Simplifies ISA specification.
+
+**Example**:
+- Unlike many other architectures, RISC-V does not hardcode a specific register as the "stack pointer."
+- Instead, any general-purpose register (except `x0`) can be used as the stack pointer.
+
+---
+
+#### 8. Use of Modular Extensions (e.g., M, A, F, D, C, V)
+
+**Peculiarity**: Rather than having a large monolithic instruction set, RISC-V uses modular extensions.
+
+**Why it exists**:
+- **Customizability**: Build a RISC-V core tailored for embedded, desktop, or HPC use.
+- Easier formal verification of smaller subsets.
+- Simplifies licensing and IP reusability.
+
+---
+
+#### 9. No Privileged Instructions in the Base ISA
+
+**Peculiarity**: The base RISC-V ISA contains no instructions for managing memory protection, exceptions, etc.
+
+**Why it exists**:
+- Privileged instructions are defined in a separate "Privileged Architecture" specification.
+- Keeps the base ISA clean and simple.
+- Enables user-mode-only implementations (e.g., microcontrollers) to omit OS-level features.
+
+---
+
+#### 10. Basic Missing Instructions
+
+**Peculiarity**: RISC-V deliberately leaves out many "basic" instructions to honor its RISC roots.
+
+These are implemented using existing instructions or defined as **pseudoinstructions** in the assembler:
+
+| Operation           | Pseudoinstruction | Actual Instruction         | Explanation                                  |
+|---------------------|-------------------|----------------------------|----------------------------------------------|
+| Unconditional Jump  | `j label`         | `jal x0, label`            | `jal` with `x0` discards return addr → jump  |
+| No Operation (NOP)  | `nop`             | `addi x0, x0, 0`           | Adds 0 to 0, result ignored → does nothing   |
+| Move Register       | `mv x1, x2`       | `addi x1, x2, 0`           | Adds 0 to value in `x2`, stores in `x1`      |
+| Two’s Complement    | `neg x1, x2`      | `sub x1, x0, x2`           | Subtracts `x2` from 0 → negation             |
+| Bitwise NOT         | `not x1, x2`      | `xori x1, x2, -1`          | XOR with 0xFFFFFFFF → bit inversion          |
+
+---
+
+#### Summary Table
+
+| Peculiarity                         | Why It Exists                            | Example                        |
+|------------------------------------|-----------------------------------------|-------------------------------|
+| No 32-bit immediate in 1 instr.    | Simpler decode                          | `lui` + `addi`                |
+| `x0` always zero                   | Constant zero, hardware ease            | `add x2, x3, x0`              |
+| No condition flags                 | Explicit, pipeline-friendly             | `slt x1, x2, x3`              |
+| Load/store-only memory access     | Clear separation, RISC purity           | `lw x1, 0(x2)`                |
+| Modular extensions                | Customizable cores                      | `mul x5, x6, x7`              |
+| No division in base ISA           | Simpler minimal cores                   | Use "M" extension or software |
+| Fixed-length instructions          | Easier pipeline and decoding            | Use `'C'` for compressed form |
