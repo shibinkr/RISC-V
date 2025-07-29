@@ -630,7 +630,10 @@ In RISC-V assembly language, **instruction mnemonics** are used as human-readabl
 
 For example, the mnemonic `add` corresponds to an **addition operation**.
 
-A typical instruction like:  `add x1, x2, x3`
+A typical instruction like: 
+```assembly
+add x1, x2, x3
+```
 means: "Add the contents of register x2 and register x3, then store the result in register x1."
 
 #### 2.6.3.1 Role of the Assembler
@@ -674,8 +677,10 @@ RISC-V, an open standard instruction set architecture (ISA), has several design 
 - Helps eliminate the need for explicit loading of zero.
 - Common patterns like conditional branches and arithmetic operations can be simplified, since `x0` can serve as a constant zero operand.
 
-**Example**:  
-`addi x5, x0, 10   # Load immediate value 10 into x5`
+**Example**:
+```assembly
+addi x5, x0, 10   # Load immediate value 10 into x5
+```
 No need for a separate instruction to load zero.
 
 ---
@@ -690,7 +695,9 @@ No need for a separate instruction to load zero.
 - Reduces hidden state that can complicate out-of-order execution and parallelism.
 
 **Result**: Instead of checking a flag, you use explicit instructions.
-`slt x1, x2, x3  # Set x1 = 1 if x2 < x3, else 0`
+```assembly
+slt x1, x2, x3  # Set x1 = 1 if x2 < x3, else 0
+```
 ---
 
 #### 3. Fixed-Length 32-bit Instructions in the Base ISA (RV32I)
@@ -704,9 +711,10 @@ No need for a separate instruction to load zero.
 
 **Example**:  
 No single instruction for 32-bit immediates → use multiple instructions to construct large constants.
-- `lui x1, 0x12345`       # Load upper 20 bits (x1 = 0x12345000)
-- `addi x1, x1, 0x678`    # Add lower 12 bits (x1 = 0x12345678)
-
+```assembly
+lui x1, 0x12345       # Load upper 20 bits (x1 = 0x12345000)
+addi x1, x1, 0x678    # Add lower 12 bits (x1 = 0x12345678)
+```
 ---
 
 #### 4. Load/Store Architecture
