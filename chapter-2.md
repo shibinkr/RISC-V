@@ -539,3 +539,87 @@ The **RV32I Instruction Set Architecture (ISA)** defines a 32-bit system with th
 - **Example:** `jal x1, label` — jumps to `label` and saves return address in `x1`.
 - **Used for:** Function calls and control transfer.
 
+---
+
+### 2.6.2 Immediates and Addresses in RISC-V Instructions
+
+In RISC-V, most instructions other than R-Type include **immediates** — literal values encoded directly inside the 32-bit instruction word instead of being stored in registers or memory.
+
+#### 2.6.2.1 What Are Immediates?
+
+- Immediates are fixed data embedded within an instruction.
+- They can represent:
+  - Constants used in arithmetic or logic (e.g., add immediate).
+  - Memory addresses or offsets for loads, stores, branches, and jumps.
+
+#### 2.6.2.2 Why Do Immediates Matter?
+
+- They allow instructions to operate on values or addresses without extra memory access.
+- Using immediates speeds up common operations like pointer arithmetic, branch targeting, and loading constants.
+
+#### 2.6.2.3 Immediate Encoding Characteristics
+
+- All immediates decode to **32-bit values** in the processor, regardless of their bit-length in the instruction.
+- Encoding varies by instruction type to optimize the instruction layout and functionality.
+- The immediate fields are placed mostly on the left (higher bits) side of the instruction but are arranged differently per type.
+- This variation defines the instruction types (I, S, B, U, J) and how immediates are extracted.
+
+#### 2.6.2.4 How Immediate Encoding Differs by Instruction Type
+
+| Instruction Type | Immediate Size | Immediate Purpose          | Encoding Notes                                      |
+|------------------|----------------|----------------------------|----------------------------------------------------|
+| I-Type           | 12 bits        | Constants, load offsets    | Continuous 12-bit immediate in bits [31:20]        |
+| S-Type           | 12 bits        | Store address offset       | Split into two parts: bits [31:25] and bits [11:7] |
+| B-Type           | 12 bits        | Branch target offset       | Immediate bits scattered for sign extension, alignment |
+| U-Type           | 20 bits        | Upper 20 bits of a constant| Immediate occupies bits [31:12], lower 12 bits zeroed |
+| J-Type           | 20 bits        | Jump target offset         | Immediate bits spread non-linearly for sign extension |
+
+##### Example: Immediate Positions in Common Types
+
+- **I-Type Immediate:**  
+  Encoded as a single 12-bit field `[31:20]` — directly sign-extended to 32 bits.
+
+- **S-Type Immediate:**  
+  Split between bits `[31:25]` and `[11:7]` — concatenated and sign-extended.
+
+- **B-Type Immediate:**  
+  Bits are taken from `[31]`, `[7]`, `[30:25]`, `[11:8]` and combined with shifting to form the branch offset.
+
+- **U-Type Immediate:**  
+  A 20-bit immediate in `[31:12]`, representing bits 31 to 12 of the final value, with lower 12 bits zeroed.
+
+- **J-Type Immediate:**  
+  Bits from `[31]`, `[19:12]`, `[20]`, and `[30:21]` combined and shifted for jump target.
+
+> Despite different bit placements, all immediates are sign- or zero-extended to 32 bits before use.
+
+#### 2.6.2.5 What Does “Extended to 32 bits” Mean?
+
+In RISC-V, immediates inside instructions often have fewer than 32 bits (for example, 12 or 20 bits). But the processor uses 32-bit registers, so these shorter immediates must be converted, or "**extended,**" to full 32-bit values before use.
+
+There are two common types of extension:
+
+##### 1 Sign Extension
+
+- If the immediate represents a **signed number** (which can be positive or negative), its most significant bit (MSB) — the leftmost bit of the immediate — is copied (or “replicated”) into the higher bits up to 32 bits.
+- This preserves the number's sign and value when expanding to 32 bits.
+
+**Example:**  
+A 12-bit immediate: `0b1111_1111_1010` (which is negative in 12-bit two’s complement)  
+When sign-extended to 32 bits, it becomes:  
+`0b1111_1111_1111_1111_1111_1111_1111_1010` (still negative, same value)
+
+##### 2 Zero Extension
+
+- If the immediate is always **non-negative (unsigned)**, the upper bits are simply filled with zeros.
+
+**Example:**  
+A 20-bit immediate: `0x12345` becomes  
+`0x00012345` when zero-extended to 32 bits.
+
+##### 2.6.2.6 Why is Extension Needed?
+
+- CPU registers and arithmetic units work with **32-bit data**.
+- The immediate must be the same width as registers before performing operations.
+- Proper extension ensures correct signed or unsigned arithmetic.
+
