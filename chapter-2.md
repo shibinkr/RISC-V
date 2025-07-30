@@ -860,3 +860,93 @@ These are implemented using existing instructions or defined as **pseudoinstruct
 | ecall       | System            | ecall                   | -                                         | Environment call (system call)      |
 | ebreak      | System            | ebreak                  | -                                         | Environment break (debug)           |
 | fence       | I-type (System)   | fence pred, succ        | Memory and I/O ordering constraints      | Ensures ordering of memory and I/O operations |
+
+---
+
+## 2.7 Privileged Specification in Detail
+
+### 2.7.1 What is the Privileged Specification?
+
+The Privileged Specification defines how privileged software—such as operating systems and firmware—can interact with hardware. It includes special instructions and control registers that are not accessible in regular user-mode programs.
+
+These privileged operations are essential for tasks like:
+
+- Managing virtual memory  
+- Handling interrupts and exceptions  
+- Scheduling tasks  
+- Isolating different users or processes for security  
+
+---
+
+### 2.7.2 Privilege Modes in RISC-V
+
+RISC-V defines multiple privilege levels, each with different rights:
+
+| Mode    | Who Uses It           | Access Level | Description                                                                 |
+|---------|------------------------|---------------|------------------------------------------------------------------------------|
+| U-mode  | Applications           | Least         | Runs unprivileged user programs; used by applications. Restricted access.    |
+| S-mode  | Operating Systems      | Medium        | Used by operating systems. Can manage memory and resources but not everything. |
+| H-mode  | Hypervisor (optional)  | High          | For managing virtual machines (optional, advanced use).                      |
+| M-mode  | Machine/Firmware       | Highest       | The most powerful mode. Used by firmware or bootloaders. Has full access to hardware. |
+
+---
+
+### 2.7.3 Software Stack Example
+
+The RISC-V privileged spec supports a layered software architecture like this:
+|-----------------------|
+| Applications (U-mode) |
+|-----------------------|
+| Operating System (S-mode)  |
+|-----------------------|
+| Firmware / Bootloader (M-mode) |
+|-----------------------|
+| Hardware              |
+|-----------------------|
+
+Each layer needs different levels of control. The privileged specification defines how these layers interact with hardware and with each other, making sure everything runs securely and efficiently.
+
+### 2.7.4 Virtual Machine Monitor Configuration in RISC-V
+
+In a modern system, multiple operating systems (OSes) can run simultaneously on the same physical machine using a hypervisor. Each OS thinks it's running on its own hardware, but in reality, the hypervisor manages access to the actual hardware.
+
+RISC-V supports this setup by providing standard interfaces for communication between layers.
++--------------------+  +--------------------+  +--------------------+  +--------------------+
+|    Application     |  |    Application     |  |    Application     |  |    Application     |
++--------------------+  +--------------------+  +--------------------+  +--------------------+
+|        ABI         |  |        ABI         |        ABI            |  |        ABI         |
++--------------------+--+--------------------+  +--------------------+--+--------------------+
+|                     OS                     |  |                     OS                     |
++--------------------------------------------+  +--------------------------------------------+
+|                    SBI                     |  |                    SBI                     |
++--------------------------------------------------------------------------------------------+
+|                                       Hypervisor                                           |
++--------------------------------------------------------------------------------------------+
+|                                         HBI                                                |
++--------------------------------------------------------------------------------------------+
+|                             HEE (Hardware Execution Environment)                           |
++--------------------------------------------------------------------------------------------+
+
+#### 2.7.4.1 RISC-V Virtualized System – Layer Summary
+
+- **Application Layer**: Runs user code (U-mode).
+- **ABI (Application Binary Interface)**: Connects apps to their OS.
+- **OS (Operating System)**: Runs in S-mode, manages system resources.
+- **SBI (Supervisor Binary Interface)**: Connects OS to the hypervisor.
+- **Hypervisor**: Manages multiple OSs (H-mode).
+- **HBI (Hypervisor Binary Interface)**: Abstracts hardware for the hypervisor.
+- **HEE (Hypervisor Execution Environment)**: Actual or emulated hardware.
+
+---
+
+##### 2.7.4.2 Layer Summary Table
+
+| Layer                | Role                                         | Privilege Mode | Interface Used |
+|----------------------|----------------------------------------------|----------------|----------------|
+| Application          | Runs user programs                           | U-mode         | ABI            |
+| ABI                  | Interface between app & OS                   | —              | —              |
+| Operating System (OS)| Manages processes, memory, devices           | S-mode         | SBI            |
+| SBI                  | Interface for OS to call hypervisor          | —              | —              |
+| Hypervisor           | Manages virtual machines & OS isolation      | H-mode (optional) | HBI         |
+| HBI                  | Interface to abstract hardware for hypervisor| —              | —              |
+| HEE (Hardware)       | Executes instructions, real hardware         | M-mode         | —              |
