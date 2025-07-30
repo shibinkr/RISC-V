@@ -894,15 +894,13 @@ RISC-V defines multiple privilege levels, each with different rights:
 ### 2.7.3 Software Stack Example
 
 The RISC-V privileged spec supports a layered software architecture like this:
-|-----------------------|
+
+| Layer                  | 
+|:------------------------:|
 | Applications (U-mode) |
-|-----------------------|
 | Operating System (S-mode)  |
-|-----------------------|
 | Firmware / Bootloader (M-mode) |
-|-----------------------|
 | Hardware              |
-|-----------------------|
 
 Each layer needs different levels of control. The privileged specification defines how these layers interact with hardware and with each other, making sure everything runs securely and efficiently.
 
