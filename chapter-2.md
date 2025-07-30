@@ -814,3 +814,49 @@ These are implemented using existing instructions or defined as **pseudoinstruct
 | Modular extensions                | Customizable cores                      | `mul x5, x6, x7`              |
 | No division in base ISA           | Simpler minimal cores                   | Use "M" extension or software |
 | Fixed-length instructions          | Easier pipeline and decoding            | Use `'C'` for compressed form |
+
+---
+### 2.6.5 RV32I Base Integer Instructions
+
+| Instruction | Instruction Type  | Assembly Syntax          | Operation (Math)                           | Description                               |
+|-------------|-------------------|-------------------------|-------------------------------------------|-------------------------------------------|
+| add         | R-type            | add rd, rs1, rs2        | rd = rs1 + rs2                            | Add two registers                        |
+| sub         | R-type            | sub rd, rs1, rs2        | rd = rs1 - rs2                            | Subtract second register from first      |
+| sll         | R-type            | sll rd, rs1, rs2        | rd = rs1 << (rs2 & 0x1F)                  | Shift left logical                       |
+| slt         | R-type            | slt rd, rs1, rs2        | rd = (rs1 < rs2) ? 1 : 0 (signed)         | Set less than (signed)                   |
+| sltu        | R-type            | sltu rd, rs1, rs2       | rd = (rs1 < rs2) ? 1 : 0 (unsigned)       | Set less than (unsigned)                 |
+| xor         | R-type            | xor rd, rs1, rs2        | rd = rs1 ^ rs2                            | Bitwise XOR                             |
+| srl         | R-type            | srl rd, rs1, rs2        | rd = rs1 >> (rs2 & 0x1F) (logical)        | Shift right logical                     |
+| sra         | R-type            | sra rd, rs1, rs2        | rd = rs1 >> (rs2 & 0x1F) (arithmetic)     | Shift right arithmetic                  |
+| or          | R-type            | or rd, rs1, rs2         | rd = rs1 | rs2                            | Bitwise OR                             |
+| and         | R-type            | and rd, rs1, rs2        | rd = rs1 & rs2                            | Bitwise AND                            |
+| addi        | I-type            | addi rd, rs1, imm       | rd = rs1 + imm                            | Add immediate                          |
+| slti        | I-type            | slti rd, rs1, imm       | rd = (rs1 < imm) ? 1 : 0 (signed)          | Set less than immediate (signed)       |
+| sltiu       | I-type            | sltiu rd, rs1, imm      | rd = (rs1 < imm) ? 1 : 0 (unsigned)        | Set less than immediate (unsigned)     |
+| xori        | I-type            | xori rd, rs1, imm       | rd = rs1 ^ imm                            | XOR immediate                         |
+| ori         | I-type            | ori rd, rs1, imm        | rd = rs1 | imm                            | OR immediate                          |
+| andi        | I-type            | andi rd, rs1, imm       | rd = rs1 & imm                            | AND immediate                         |
+| slli        | I-type            | slli rd, rs1, shamt     | rd = rs1 << shamt                         | Shift left logical immediate            |
+| srli        | I-type            | srli rd, rs1, shamt     | rd = rs1 >> shamt (logical)               | Shift right logical immediate           |
+| srai        | I-type            | srai rd, rs1, shamt     | rd = rs1 >> shamt (arithmetic)            | Shift right arithmetic immediate        |
+| lb          | I-type (Load)     | lb rd, offset(rs1)      | rd = sign_extend(M[rs1+offset][7:0])     | Load byte (sign-extended)               |
+| lh          | I-type (Load)     | lh rd, offset(rs1)      | rd = sign_extend(M[rs1+offset][15:0])    | Load halfword (sign-extended)           |
+| lw          | I-type (Load)     | lw rd, offset(rs1)      | rd = M[rs1+offset][31:0]                  | Load word                              |
+| lbu         | I-type (Load)     | lbu rd, offset(rs1)     | rd = zero_extend(M[rs1+offset][7:0])     | Load byte unsigned                     |
+| lhu         | I-type (Load)     | lhu rd, offset(rs1)     | rd = zero_extend(M[rs1+offset][15:0])    | Load halfword unsigned                 |
+| sb          | S-type (Store)    | sb rs2, offset(rs1)     | M[rs1+offset][7:0] = rs2[7:0]             | Store byte                            |
+| sh          | S-type (Store)    | sh rs2, offset(rs1)     | M[rs1+offset][15:0] = rs2[15:0]           | Store halfword                        |
+| sw          | S-type (Store)    | sw rs2, offset(rs1)     | M[rs1+offset][31:0] = rs2                 | Store word                           |
+| beq         | B-type (Branch)   | beq rs1, rs2, offset    | if (rs1 == rs2) PC += offset               | Branch if equal                      |
+| bne         | B-type (Branch)   | bne rs1, rs2, offset    | if (rs1 != rs2) PC += offset               | Branch if not equal                  |
+| blt         | B-type (Branch)   | blt rs1, rs2, offset    | if (rs1 < rs2) PC += offset (signed)       | Branch if less than (signed)          |
+| bge         | B-type (Branch)   | bge rs1, rs2, offset    | if (rs1 >= rs2) PC += offset (signed)      | Branch if greater or equal (signed)   |
+| bltu        | B-type (Branch)   | bltu rs1, rs2, offset   | if (rs1 < rs2) PC += offset (unsigned)     | Branch if less than (unsigned)        |
+| bgeu        | B-type (Branch)   | bgeu rs1, rs2, offset   | if (rs1 >= rs2) PC += offset (unsigned)    | Branch if greater or equal (unsigned) |
+| lui         | U-type            | lui rd, imm             | rd = imm << 12                            | Load upper immediate                 |
+| auipc       | U-type            | auipc rd, imm           | rd = PC + (imm << 12)                     | Add upper immediate to PC            |
+| jal         | J-type            | jal rd, offset          | rd = PC + 4; PC += offset                 | Jump and link                       |
+| jalr        | I-type (Jump)     | jalr rd, rs1, offset    | rd = PC + 4; PC = (rs1 + offset) & ~1    | Jump and link register              |
+| ecall       | System            | ecall                   | -                                         | Environment call (system call)      |
+| ebreak      | System            | ebreak                  | -                                         | Environment break (debug)           |
+| fence       | I-type (System)   | fence pred, succ        | Memory and I/O ordering constraints      | Ensures ordering of memory and I/O operations |
