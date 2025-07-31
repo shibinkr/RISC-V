@@ -1015,3 +1015,19 @@ Physical Memory Attributes (PMAs) define the properties and capabilities of diff
 - PMP checks happen in parallel with Physical Memory Attribute (PMA) checks to ensure memory access is allowed.  
 - The size and granularity of the PMP-controlled regions depend on the platform but can be as small as four bytes.  
 - Some memory regions can have fixed access permissions, for example, being accessible only in M-mode and not by lower-privileged modes.
+
+---
+
+## 2.9 Supervisor-Level (S-Mode) ISA
+
+### 2.9.1 What is Supervisor-Level (S-Mode) ISA?
+- Supervisor mode (S-mode) is a privileged mode in the RISC-V architecture, but less privileged than Machine mode (M-mode). It is designed mainly to run operating systems or hypervisors.  
+- The S-mode ISA provides a common core architecture that supports various ways of managing virtual memory and protection.  
+- Unlike M-mode, S-mode is intentionally limited in how it interacts with physical hardware—such as directly accessing physical memory or handling device interrupts—to make virtualization easier and cleaner.
+
+### 2.9.2 Key Features of S-Mode:
+- **Restricted hardware access:** S-mode doesn’t directly control all hardware resources. Instead, access to certain features like timers or interrupts is provided through implementation-specific or system-specific mechanisms.  
+- **Supervisor Execution Environment (SEE):** Some systems provide S-mode services via a supervisor binary interface (SBI), a defined way to handle things like timer requests or inter-processor interrupts. Other systems might handle this differently.  
+- **Virtual memory support:** RISC-V supports page-based virtual memory with different address widths (32-bit, 39-bit, and 48-bit).  
+- **SFENCE.VMA instruction:** S-mode includes a special instruction called SFENCE.VMA used to synchronize memory management data updates. This ensures changes to page tables or other memory management structures are visible to the processor cores in the correct order.
+
