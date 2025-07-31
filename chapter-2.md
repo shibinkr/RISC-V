@@ -955,3 +955,63 @@ RISC-V supports this setup by providing standard interfaces for communication be
 | Hypervisor           | Manages virtual machines & OS isolation      | H-mode (optional) | HBI         |
 | HBI                  | Interface to abstract hardware for hypervisor| —              | —              |
 | HEE (Hardware)       | Executes instructions, real hardware         | M-mode         | —              |
+
+---
+
+## 2.8 Overview of Machine-Level (M-Mode) ISA
+
+### 2.8.1 What is Machine-Level (M-Mode) ISA?
+- Machine-level (M-mode) is the most privileged mode in a processor’s architecture.  
+- It provides low-level control over the hardware platform.  
+- This mode is the first mode the processor enters after reset — meaning when the CPU starts up or restarts, it begins operating in M-mode.  
+- In M-mode, the processor is fully initialized and ready to execute code.
+
+### 2.8.2 Why is M-Mode important?
+- It’s used to manage critical hardware features and perform essential system tasks.  
+- Since M-mode has the highest privileges, it can access all system resources without restriction.  
+- M-mode can also handle functions that are difficult or expensive to implement purely in hardware.
+
+### 2.8.3 Example Use Case
+- One common example is a watchdog timer: a mechanism that detects system faults or hangs and recovers the system automatically.  
+- Instead of building this complex timer fully in hardware, it can be implemented in low-level software (firmware) running in M-mode.
+
+### 2.8.4 Important Features
+
+#### 2.8.4.1 Non-Maskable Interrupts (NMIs) in M-Mode
+- **What are NMIs?**  
+  Non-maskable interrupts are special hardware signals used only for critical hardware error conditions. These are interruptions that cannot be ignored or turned off by software.
+
+- **Immediate Handling:**  
+  When an NMI occurs, the processor immediately stops what it's doing and jumps to a special piece of code called the NMI handler, which runs in the privileged M-mode. This happens regardless of whether interrupts are enabled or disabled for that thread—NMIs cannot be blocked or masked.
+
+- **Why are NMIs important?**  
+  Because NMIs are reserved for serious hardware problems, they provide a way to respond instantly to critical errors that might otherwise go unnoticed or cause more damage.
+
+- **mcause Register:**  
+  Each NMI comes with an associated mcause register that stores information about what caused the interrupt. This allows the system to differentiate between various hardware error causes and handle them appropriately.
+
+- **Does not Reset Processor State:**  
+  Unlike some other interrupts or resets, NMIs do not reset the processor's internal state. This is crucial because it allows the system to diagnose the error, report it, and possibly contain or recover from the fault without losing important context.
+
+#### 2.8.4.2 Physical Memory Attributes (PMA)
+Physical Memory Attributes (PMAs) define the properties and capabilities of different regions in a system’s physical memory map, such as memory areas, control registers, and unused address spaces. These attributes specify whether regions support operations like reading, writing, executing, atomic operations, and cache coherence.
+
+- Some PMAs are fixed during chip or board design (e.g., on-chip ROM or connected external devices).  
+- Some PMAs can be changed at runtime to allow flexible uses, like switching an on-chip scratchpad RAM between cached and non-cached modes. M-mode software (such as firmware or low-level OS components) manages these by using memory-mapped control registers to set or update PMA settings.  
+- PMAs are enforced dynamically in hardware during instruction execution because support for certain operations can vary by memory region and configuration.  
+- RISC-V enforces PMA rules using a dedicated hardware unit called the PMA checker, which can have fixed or configurable settings controlled through memory-mapped registers. This PMA checker operates under the supervision of M-mode, ensuring memory operations follow the specified attributes.  
+- Since PMAs govern how physical memory regions behave and are accessed, M-mode is responsible for configuring, enforcing, and managing these attributes.
+
+#### 2.8.4.3 Physical Memory Protection (PMP)
+
+##### What is Physical Memory Protection (PMP)?
+- Many modern processors include features to support secure execution environments, sometimes called trusted execution environments (TEEs), which help protect sensitive computations.  
+- Examples of TEEs in other architectures are Intel SGX, AMD SEV, and Arm TrustZone.  
+- While RISC-V doesn’t provide a full TEE solution, its Physical Memory Protection (PMP) feature offers a strong foundation for building such security systems.
+
+##### How does PMP work?
+- PMP restricts the physical memory addresses that software running on a hardware thread (hart) can access.  
+- An optional PMP unit provides control registers in machine mode (M-mode) that specify access permissions — such as read, write, and execute rights — for different physical memory regions.  
+- PMP checks happen in parallel with Physical Memory Attribute (PMA) checks to ensure memory access is allowed.  
+- The size and granularity of the PMP-controlled regions depend on the platform but can be as small as four bytes.  
+- Some memory regions can have fixed access permissions, for example, being accessible only in M-mode and not by lower-privileged modes.
