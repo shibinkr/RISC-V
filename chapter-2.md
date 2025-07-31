@@ -894,14 +894,19 @@ RISC-V defines multiple privilege levels, each with different rights:
 ### 2.7.3 Software Stack Example
 
 The RISC-V privileged spec supports a layered software architecture like this:
-
-| Layer                  | 
-|:------------------------:|
+``` assembly
++-----------------------+
 | Applications (U-mode) |
-| Operating System (S-mode)  |
-| Firmware / Bootloader (M-mode) |
-| Hardware              |
-
++-----------------------+
+|    Operating System   |
+|       (S-mode)        |
++-----------------------+
+| Firmware / Bootloader |
+|       (M-mode)        |
++-----------------------+
+|       Hardware        |
++-----------------------+
+```
 Each layer needs different levels of control. The privileged specification defines how these layers interact with hardware and with each other, making sure everything runs securely and efficiently.
 
 ### 2.7.4 Virtual Machine Monitor Configuration in RISC-V
@@ -909,6 +914,7 @@ Each layer needs different levels of control. The privileged specification defin
 In a modern system, multiple operating systems (OSes) can run simultaneously on the same physical machine using a hypervisor. Each OS thinks it's running on its own hardware, but in reality, the hypervisor manages access to the actual hardware.
 
 RISC-V supports this setup by providing standard interfaces for communication between layers.
+```assembly
 +--------------------+  +--------------------+  +--------------------+  +--------------------+
 |    Application     |  |    Application     |  |    Application     |  |    Application     |
 +--------------------+  +--------------------+  +--------------------+  +--------------------+
@@ -924,6 +930,7 @@ RISC-V supports this setup by providing standard interfaces for communication be
 +--------------------------------------------------------------------------------------------+
 |                             HEE (Hardware Execution Environment)                           |
 +--------------------------------------------------------------------------------------------+
+```
 
 #### 2.7.4.1 RISC-V Virtualized System – Layer Summary
 
