@@ -1,6 +1,6 @@
 # Chapter 3: The RISC-V Assembly Workbook
 
-## Chapter 3.1: Features of RISC-V Assembly Language
+## 3.1: Features of RISC-V Assembly Language
 
 The RISC-V assembly language reflects the design goals of the RISC-V Instruction Set Architecture (ISA). It emphasizes simplicity, consistency, and direct control over the hardware. This chapter outlines key features that make RISC-V assembly both practical and educational.
 
