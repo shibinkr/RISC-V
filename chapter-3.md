@@ -153,3 +153,93 @@ Here’s a list of commonly used directives in RISC-V assembly, with brief expla
 | `.globl`      | Declares a symbol (e.g., a function or variable name) as **global**, so it can be accessed from other files. |
 | `.equ`        | Assigns a constant value to a symbol; useful for defining named constants.   |
 | `.string`     | Defines a null-terminated string of ASCII characters.                        |
+
+---
+
+### 3.1.3 CSR Access in RISC-V
+
+#### What Are CSRs?
+
+**CSR** stands for **Control and Status Register**.  
+In RISC-V, each **hart** (hardware thread, like a CPU core) has a set of **4096 CSRs**.
+
+These registers are used to:
+- Configure hardware (control registers)
+- Report system information (status registers)
+
+**Examples:**
+- Timer and performance counters
+- Exception handling
+- Privilege level info
+- Floating-point unit status
+
+---
+
+#### Where Are CSRs Located?
+
+- CSRs are **not part of regular memory**.
+- They are located in a **special address space**, with addresses ranging from **0x000 to 0xFFF**.
+- You access them using **dedicated instructions**, not regular load/store instructions.
+
+---
+
+#### CSR Access Instructions
+
+These are defined by the **Zicsr** (Control and Status Register) extension in RISC-V.
+
+There are **3 main CSR instructions**:
+
+| Instruction | Meaning   | Behavior                                         |
+|-------------|-----------|------------------------------------------------|
+| CSRRW       | Read/Write| Reads the CSR, writes a new value from a register |
+| CSRRS       | Read/Set  | Reads the CSR, sets bits that are 1 in a register |
+| CSRRC       | Read/Clear| Reads the CSR, clears bits that are 1 in a register |
+
+---
+
+#### Two Addressing Modes
+
+Each instruction has **2 versions**, depending on the source operand:
+
+1. **Register version**  
+   - Uses a general-purpose register (e.g., `x1`, `x2`, etc.) as the source.
+
+   **Examples:**
+   ```assembly
+   csrrw x5, 0x300, x6   # Read CSR 0x300 into x5, write x6 into CSR
+   csrrs x5, 0xC00, x0   # Read CSR 0xC00 (cycle counter) into x5, don’t set anything (x0 = 0)
+   ```
+
+2. **Immediate version** (ends with `I`)  
+   - Uses a 5-bit immediate constant instead of a register.  
+   - Used for small constant values (like setting a flag).
+   **Examples:**
+   ```assembly
+   csrrwi x5, 0x300, 1   # Write 1 into CSR 0x300, return old value in x5
+   csrrsi x0, 0x300, 2   # Set bit 2 in CSR 0x300, discard the read result (x0)
+   ```
+
+---
+
+#### Summary: The 6 Zicsr Instructions
+
+| Instruction | Immediate Version | Description             |
+|-------------|-------------------|-------------------------|
+| CSRRW       | CSRRWI            | Read and write CSR      |
+| CSRRS       | CSRRSI            | Read and set bits in CSR|
+| CSRRC       | CSRRCI            | Read and clear bits in CSR|
+
+---
+
+#### Common CSRs You Might Use
+
+| CSR Name | Address | Purpose               |
+|----------|---------|-----------------------|
+| mstatus  | 0x300   | Machine status        |
+| misa     | 0x301   | ISA features          |
+| mie      | 0x304   | Interrupt enable      |
+| mepc     | 0x341   | Exception program counter |
+| cycle    | 0xC00   | Cycle counter         |
+| time     | 0xC01   | Timer                 |
+| instret  | 0xC02   | Instructions retired  |
+
