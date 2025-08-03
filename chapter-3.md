@@ -371,14 +371,14 @@ lui t0, 0x12345 – Loads 0x12345000 into t0.
 ```
 ---
 
-#### Loading Full 32-bit Immediates
+##### Loading Full 32-bit Immediates
 
 RISC-V does not have a single native instruction for loading an arbitrary 32-bit value. Instead, you combine instructions:
 
 ```assembly
 lui t0, 0x12345 – Loads the upper 20 bits.
 addi t0, t0, 0x678 – Adds the lower 12 bits.
-```assembly
+```
 
 Together, this sequence loads `0x12345678` into register `t0`.
 
