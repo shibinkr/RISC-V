@@ -349,7 +349,7 @@ Most arithmetic and logical instructions (e.g., `addi`, `andi`, `ori`) use **12-
 
 **Example:**  
 ```assembly
-addi x1, x2, 100 – Adds 100 (sign-extended to 32 bits) to x2 and stores the result in x1.
+addi x1, x2, 100   # Adds 100 (sign-extended to 32 bits) to x2 and stores the result in x1.
 ```
 
 - The value `100` is encoded in 12 bits.
@@ -367,7 +367,7 @@ Some instructions use larger immediates:
 
 **Example:**  
 ```assembly
-lui t0, 0x12345 – Loads 0x12345000 into t0.
+lui t0, 0x12345  # Loads 0x12345000 into t0.
 ```
 ---
 
@@ -376,8 +376,8 @@ lui t0, 0x12345 – Loads 0x12345000 into t0.
 RISC-V does not have a single native instruction for loading an arbitrary 32-bit value. Instead, you combine instructions:
 
 ```assembly
-lui t0, 0x12345 – Loads the upper 20 bits.
-addi t0, t0, 0x678 – Adds the lower 12 bits.
+lui t0, 0x12345  # Loads the upper 20 bits.
+addi t0, t0, 0x678  # Adds the lower 12 bits.
 ```
 
 Together, this sequence loads `0x12345678` into register `t0`.
