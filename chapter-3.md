@@ -327,4 +327,101 @@ lw t0, count    # Load word from label "count"
 
 - Different assemblers (e.g., **GAS**, **NASM**) may have slight syntax variations.
 
+---
+
+### 3.1.5 Understanding Immediate Sizes in RISC-V RV32I
+
+#### What is an Immediate?
+
+An **immediate** is a constant value encoded directly within an instruction—rather than being stored in a register or memory.
+
+---
+
+#### Immediate Sizes in RV32I
+
+The RISC-V RV32I (base 32-bit integer) architecture supports different immediate sizes depending on the instruction type. Here's how they break down:
+
+---
+
+##### Common Size: 12-bit Immediates
+
+Most arithmetic and logical instructions (e.g., `addi`, `andi`, `ori`) use **12-bit signed immediates**.
+
+**Example:**  
+```assembly
+addi x1, x2, 100 – Adds 100 (sign-extended to 32 bits) to x2 and stores the result in x1.
+```
+
+- The value `100` is encoded in 12 bits.
+- It is sign-extended to 32 bits to match the register width.
+
+---
+
+##### 20-bit Immediates
+
+Some instructions use larger immediates:
+
+- **`lui` (Load Upper Immediate):** Uses 20 bits.
+  - Loads the value into the upper 20 bits of a register.
+  - The lower 12 bits are set to zero.
+
+**Example:**  
+```assembly
+lui t0, 0x12345 – Loads 0x12345000 into t0.
+```
+---
+
+#### Loading Full 32-bit Immediates
+
+RISC-V does not have a single native instruction for loading an arbitrary 32-bit value. Instead, you combine instructions:
+
+```assembly
+lui t0, 0x12345 – Loads the upper 20 bits.
+addi t0, t0, 0x678 – Adds the lower 12 bits.
+```assembly
+
+Together, this sequence loads `0x12345678` into register `t0`.
+
+> **Note:**  
+> RISC-V provides a pseudoinstruction `li` (load immediate) that abstracts this:  
+```assembly
+  li t0, 0x12345678  
+```
+> The assembler automatically expands `li` into `lui + addi` or another valid equivalent.
+
+---
+
+#### Jump Instructions and Immediates
+
+- `jal` (Jump and Link) and `jalr` (Jump and Link Register) use **20-bit signed immediates**.
+- These offsets are added to the **Program Counter (PC)** to calculate target jump addresses.
+
+---
+
+#### Always Check the Manual
+
+Since immediate sizes vary by instruction:
+
+- Refer to the **RISC-V Instruction Set Manual**.
+- Also check your **assembler’s documentation**, especially for how pseudoinstructions are expanded.
+
+---
+
+#### What About RV64I and RV128I?
+
+These are extended architectures of RV32I:
+
+- **RV64I (64-bit):** Supports up to 20-bit and 32-bit immediates.
+- **RV128I (128-bit):** Supports even larger immediate values.
+
+---
+
+#### Summary
+
+| Instruction Type          | Immediate Size | Example                |
+|---------------------------|----------------|------------------------|
+| Arithmetic (`addi`)       | 12 bits        | `addi x1, x2, 100`     |
+| Load Upper (`lui`)        | 20 bits        | `lui t0, 0x12345`      |
+| Jump (`jal`, `jalr`)      | 20 bits        | `jal x1, offset`       |
+| Pseudoinstruction (`li`)  | Varies         | `li t0, 0x12345678`    |
 
