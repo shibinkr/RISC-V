@@ -243,3 +243,88 @@ Each instruction has **2 versions**, depending on the source operand:
 | time     | 0xC01   | Timer                 |
 | instret  | 0xC02   | Instructions retired  |
 
+---
+
+### 3.1.4 Labels in Assembly Language
+
+---
+
+#### What Are Labels?
+
+In assembly language, **labels** are names that refer to specific memory locations in your code. They make your code:
+
+- Easier to read and understand  
+- Easier to maintain  
+- Free from hardcoding memory addresses  
+
+A label is usually followed by a colon `:` and is placed before an instruction or data element.
+
+---
+
+#### How Labels Work (Behind the Scenes)
+
+When the assembler processes your code:
+
+- It records the memory address of the instruction or data that follows the label.  
+- It then replaces the label with that address wherever the label is used.  
+
+So, a label is essentially like a **named bookmark** for a memory address.
+
+---
+
+#### Example – Instruction Labels
+
+```assembly
+loop:
+  add x1, x2, x3
+  addi x1, x1, 1
+  j loop
+```
+- `j loop` tells the CPU to **jump back** to the address marked by the `loop` label.
+- The assembler calculates the **offset** from the jump instruction to the label and encodes it into the `j` instruction.
+
+> **Note:** This helps avoid manually managing instruction addresses or offsets.
+
+---
+
+#### Example – Data Labels
+
+```assembly
+.data
+count:  .word   0
+array:  .half   6, 5, 5, 3, 2, 1
+msg:    .string "Hey there"
+age:    .byte   21
+```
+##### What Happens Here?
+
+- `.data` tells the assembler you're defining **static data**.
+- The assembler assigns **consecutive addresses** for each data element based on their size.
+
+##### Data Label Breakdown
+
+| Label | Data Type | Description                                                  | Address (Relative)       |
+|-------|-----------|--------------------------------------------------------------|---------------------------|
+| `count` | `.word`    | 4 bytes (32-bit) initialized to 0                           | Starts at `.data` section |
+| `array` | `.half`    | 6 half-words (12 bytes total), values: 6, 5, 5, 3, 2, 1     | `count` address + 4       |
+| `msg`   | `.string`  | Null-terminated string `"Hey there"` (10 bytes including `\0`) | `array` address + 12      |
+| `age`   | `.byte`    | A single byte initialized to 21                            | `msg` address + 10        |
+
+---
+
+##### Accessing These Labels in Code
+
+```assembly
+la a0, msg      # Load address of "msg" into register a0
+lw t0, count    # Load word from label "count"
+```
+
+#### Syntax Considerations
+
+- Most assemblers require labels to:
+  - End with a colon `:` (e.g., `start:`)
+  - Begin at the **start of a line** (no indentation)
+
+- Different assemblers (e.g., **GAS**, **NASM**) may have slight syntax variations.
+
+
