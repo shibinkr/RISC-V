@@ -425,3 +425,58 @@ These are extended architectures of RV32I:
 | Jump (`jal`, `jalr`)      | 20 bits        | `jal x1, offset`       |
 | Pseudoinstruction (`li`)  | Varies         | `li t0, 0x12345678`    |
 
+---
+
+### 3.1.6 What Are Environment Calls?
+
+Environment calls (also known as **system calls**) are a way for a program (like your RISC-V assembly code) to ask the **runtime environment** (like the operating system or simulator) to do something that the program can’t do on its own—like printing to the screen, reading input, or ending the program.
+
+Think of it like this:  
+Your assembly code is saying, *“Hey environment, I need your help to do this task.”*
+
+---
+
+#### How Does It Work in RISC-V (Venus Simulator)?
+
+RISC-V uses a special instruction for environment calls:
+
+```assembly
+ecall
+```
+
+This `ecall` doesn’t do anything by itself unless you:
+
+1. Put the call number in `a0` to tell it *what* you want.  
+2. Use `a1` (and sometimes others) to pass arguments (like a number to print).
+
+---
+
+#### Venus Simulator Environment Calls
+
+Here are some key ones:
+
+| `a0` Value | Function              | Argument (in `a1`)            |
+|------------|-----------------------|-------------------------------|
+| 1          | Print integer         | Integer value to print        |
+| 4          | Print string          | Address of string             |
+| 11         | Print ASCII character | ASCII code of character       |
+| 10         | Exit program          | None                          |
+
+---
+
+#### Example Code Breakdown
+
+```assembly
+addi a0, x0, 1 # a0 = 1, this means "print integer"
+addi a1, x0, 42 # a1 = 42, this is the number to print
+ecall # make the environment call
+```
+
+#### Let’s walk through it:
+
+1. `addi a0, x0, 1` → sets `a0 = 1`, so we’re saying, “I want to print an integer.”  
+2. `addi a1, x0, 42` → sets `a1 = 42`, so the value we want to print is 42.  
+3. `ecall` → triggers the environment to carry out the request.
+
+**The result:** The number **42** gets printed in the terminal.
+
